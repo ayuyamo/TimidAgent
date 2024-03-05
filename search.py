@@ -17,6 +17,11 @@ In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
 
+"""I promise that the attached assignment is my own work. I recognize that should this not be the case, 
+   I will be subject to penalties as outlined in the course syllabus. 
+   Quynh Anh Do (Halie)
+"""
+
 import util
 
 class SearchProblem:
@@ -64,25 +69,26 @@ class SearchProblem:
 def graph_search(problem, g, h, verbose=False, debug=False):
     from explored import Explored
     
-    frontier = util.PriorityQueue()
-    frontier.push(Node(problem.getStartState(),None, [], 0), 0)
-    explored = Explored() # keep track of nodes we have checked
-    explored.add(problem.getStartState())
+    frontier = util.PriorityQueue() # store nodes that could be reached from the expanded nodes
+    frontier.push(Node(problem.getStartState(),None, [], 0), 0) # add the first node at the game's starting point into frontier
+    explored = Explored() # keep track of nodes we have checked/explored
+    explored.add(problem.getStartState()) # node with start state checked --> added into explored
 
-    while frontier:
-        node = frontier.pop() # remove state
-        if problem.isGoalState(node.state):
-            return node.action
+    while frontier: # loops until there's no more node to be explored (solution found)
+        node = frontier.pop() # pop the node with highest piority (least cost) from frontier
+        if problem.isGoalState(node.state): # if goal is reached
+            return node.action # return solution (list of actions from start state to the goal)
         else:
-            # only add novel results from the current node
+            # get all successors of the current node
             successors = problem.getSuccessors(node.state)
             for successor, action, stepCost in successors:
                 # if successor not in explored:
                 if not explored.exists(successor):
-                    newAction = node.action + [action]
-                    newNode = Node(successor, node, newAction, problem.getCostOfActions(newAction))
+                    newAction = node.action + [action] # action from beginning to the successor node
+                    newCost = node.path_cost + stepCost # total path cost from start state to successor node
+                    newNode = Node(successor, node, newAction, newCost)
                     new_priority = g(newNode) + h(newNode, problem) # cost/estimate start→n + n→goal
-                    explored.add(successor)
+                    explored.add(successor) # ensure the node is checked/explored and will not be visited multiple times 
                     frontier.push(newNode, new_priority) # merge new nodes in by estimated cost
     return None
 
@@ -104,6 +110,7 @@ from explored import Explored
 
 class DepthFirstSearch:
     @classmethod
+    # depth first search algorithm does not use g
     def g(cls, node):
         return 0
     
@@ -121,7 +128,7 @@ class BreadthFirstSearch:
         return node.depth
     
     @classmethod
-    def h(cls, node, problem):
+    def h(cls, node, problem): # bfs does not use h
         return 0
 
     @classmethod
@@ -130,11 +137,11 @@ class BreadthFirstSearch:
     
 class AStarSearch:
     @classmethod
-    def g(cls, node):
+    def g(cls, node): # return distance from start state to the given node
         return node.depth
     
     @classmethod
-    def h(cls, node, problem):
+    def h(cls, node, problem): # return the straight line distance from the given node to the goal
         import math
         
         curr_x, curr_y = node.state
